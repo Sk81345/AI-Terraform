@@ -1,65 +1,74 @@
 name: AI Terraform Automation
 
 on:
+  push:
+    branches:
+    - test-api-gpt4o # run automatically on pushes to main
+    paths:
+    - 'main.ps1' # optional: only trigger when this file changes
+    - '.github/workflows/ai-terraform.yml'
+    - 'main.tf'
   workflow_dispatch:
+    # still allow manual runs
     inputs:
       prompt:
         description: "Describe the VM setup (e.g., Create Ubuntu VM in EastUS named NextOpsLVM07)"
         required: true
+        default: "Create Ubuntu VM in EastUS named NextOpsLVM07"
 
 jobs:
   build:
     runs-on: ubuntu-latest
 
     steps:
-      # 🧾 Step 1 — Checkout repository
-      - name: Checkout Repo
-        uses: actions/checkout@v4
+    # 🧾 Step 1 — Checkout repository
+    - name: Checkout Repo
+      uses: actions/checkout@v4
 
-      # ⚙️ Step 2 — Setup Terraform
-      - name: Setup Terraform
-        uses: hashicorp/setup-terraform@v3
+    # ⚙️ Step 2 — Setup Terraform
+    - name: Setup Terraform
+      uses: hashicorp/setup-terraform@v3
 
-      # ⚡ Step 3 — Azure Login (needed for model deployment)
-      - name: Azure Login
-        uses: azure/login@v2
-        with:
-          creds: |
-            {
-              "clientId": "${{ secrets.ARM_CLIENT_ID }}",
-              "clientSecret": "${{ secrets.ARM_CLIENT_SECRET }}",
-              "tenantId": "${{ secrets.ARM_TENANT_ID }}",
-              "subscriptionId": "${{ secrets.ARM_SUBSCRIPTION_ID }}"
-            }
+    # ⚡ Step 3 — Azure Login (needed for model deployment)
+    - name: Azure Login
+      uses: azure/login@v2
+      with:
+        creds: |
+          {
+            "clientId": "${{ secrets.ARM_CLIENT_ID }}",
+            "clientSecret": "${{ secrets.ARM_CLIENT_SECRET }}",
+            "tenantId": "${{ secrets.ARM_TENANT_ID }}",
+            "subscriptionId": "${{ secrets.ARM_SUBSCRIPTION_ID }}"
+          }
 
-      # 🤖 Step 4 — Deploy GPT-4o Model
-      - name: Deploy GPT-4o Model
-        shell: bash
-        run: |
-          echo "🚀 Deploying GPT-4o model to Azure OpenAI..."
-          az account set --subscription "${{ secrets.ARM_SUBSCRIPTION_ID }}"
-          az cognitiveservices account deployment create \
-            --resource-group RG \
-            --name tty \
-            --deployment-name gpt4o-deploy \
-            --model-name gpt-4o \
-            --model-version "2024-11-20" \
-            --model-format OpenAI \
-            --sku-capacity 1 \
-            --sku-name "Standard"
-          echo "✅ GPT-4o model deployment step completed."
+    # 🤖 Step 4 — Deploy GPT-4o Model
+    - name: Deploy GPT-4o Model
+      shell: bash
+      run: |
+        echo "🚀 Deploying GPT-4o model to Azure OpenAI..."
+        az account set --subscription "${{ secrets.ARM_SUBSCRIPTION_ID }}"
+        az cognitiveservices account deployment create \
+          --resource-group RG \
+          --name tty \
+          --deployment-name gpt4o-deploy \
+          --model-name gpt-4o \
+          --model-version "2024-11-20" \
+          --model-format OpenAI \
+          --sku-capacity 1 \
+          --sku-name "Standard"
+        echo "✅ GPT-4o model deployment step completed."
 
-      # 🧠 Step 5 — Setup PowerShell
-      - name: Setup PowerShell
-        uses: PowerShell/setup-powershell@v2
+    # 🧠 Step 5 — Setup PowerShell
+    - name: Setup PowerShell
+      uses: PowerShell/setup-powershell@v2
 
-      # 🔧 Step 6 — Run PowerShell + AI + Terraform Automation
-      - name: Run PowerShell + AI + Terraform
-        env:
-          AZURE_OPENAI_ENDPOINT: ${{ secrets.AZURE_OPENAI_ENDPOINT }}
-          AZURE_OPENAI_KEY: ${{ secrets.AZURE_OPENAI_KEY }}
-          ARM_CLIENT_ID: ${{ secrets.ARM_CLIENT_ID }}
-          ARM_CLIENT_SECRET: ${{ secrets.ARM_CLIENT_SECRET }}
-          ARM_TENANT_ID: ${{ secrets.ARM_TENANT_ID }}
-          ARM_SUBSCRIPTION_ID: ${{ secrets.ARM_SUBSCRIPTION_ID }}
-        run: pwsh ./main.ps1 -Prompt "${{ github.event.inputs.prompt }}"
+    # 🔧 Step 6 — Run PowerShell + AI + Terraform Automation
+    - name: Run PowerShell + AI + Terraform
+      env:
+        AZURE_OPENAI_ENDPOINT: ${{ secrets.AZURE_OPENAI_ENDPOINT }}
+        AZURE_OPENAI_KEY: ${{ secrets.AZURE_OPENAI_KEY }}
+        ARM_CLIENT_ID: ${{ secrets.ARM_CLIENT_ID }}
+        ARM_CLIENT_SECRET: ${{ secrets.ARM_CLIENT_SECRET }}
+        ARM_TENANT_ID: ${{ secrets.ARM_TENANT_ID }}
+        ARM_SUBSCRIPTION_ID: ${{ secrets.ARM_SUBSCRIPTION_ID }}
+      run: pwsh ./main.ps1 -Prompt "${{ github.event.inputs.prompt }}"

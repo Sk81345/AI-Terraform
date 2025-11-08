@@ -12,7 +12,7 @@ on:
   workflow_dispatch:
     inputs:
       prompt:
-        description: "Describe the VM setup"
+        description: "Describe the VM setup (e.g., Create Ubuntu VM in EastUS named NextOpsLVM07)"
         required: true
         default: "Create Ubuntu VM in EastUS named NextOpsLVM07"
 
@@ -21,16 +21,17 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    # 🧾 Step 1 — Checkout repository
+    # 🧾 Step 1 — Checkout repository (use PAT to allow push triggers)
     - name: Checkout Repo
       uses: actions/checkout@v4
+      with:
+        token: ${{ secrets.PAT_TOKEN }}
 
     # ⚙️ Step 2 — Setup Terraform
     - name: Setup Terraform
       uses: hashicorp/setup-terraform@v3
 
     # ⚡ Step 3 — Azure Login
-
     - name: Azure Login for Deployment
       uses: azure/login@v1
       with:
@@ -64,3 +65,11 @@ jobs:
         ARM_TENANT_ID: ${{ secrets.ARM_TENANT_ID }}
         ARM_SUBSCRIPTION_ID: ${{ secrets.ARM_SUBSCRIPTION_ID }}
       run: pwsh ./main.ps1 -Prompt "${{ github.event.inputs.prompt || 'Create Ubuntu VM in EastUS named NextOpsLVM07' }}"
+
+    # 🪄 Step 6 — Terraform Init
+    - name: Terraform Init
+      run: terraform init
+
+    # 🪄 Step 7 — Terraform Apply
+    - name: Terraform Apply
+      run: terraform apply -auto-approve

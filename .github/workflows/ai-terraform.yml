@@ -30,16 +30,12 @@ jobs:
       uses: hashicorp/setup-terraform@v3
 
     # ⚡ Step 3 — Azure Login
-    - name: Azure Login
-      uses: azure/login@v2
+
+    - name: Azure Login for Deployment
+      uses: azure/login@v1
       with:
-        creds: |
-          {
-            "clientId": "${{ secrets.ARM_CLIENT_ID }}",
-            "clientSecret": "${{ secrets.ARM_CLIENT_SECRET }}",
-            "tenantId": "${{ secrets.ARM_TENANT_ID }}",
-            "subscriptionId": "${{ secrets.ARM_SUBSCRIPTION_ID }}"
-          }
+        creds: ${{ secrets.AZURE_CREDENTIALS }}
+        enable-AzPSSession: true
 
     # 🤖 Step 4 — Deploy GPT-4o Model
     - name: Deploy GPT-4o Model

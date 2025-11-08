@@ -21,7 +21,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    # 🧾 Step 1 — Checkout repository (use PAT to allow push triggers)
+    # 🧾 Step 1 — Chdeckout repository (use PAT to allow push triggers)
     - name: Checkout Repo
       uses: actions/checkout@v4
       with:

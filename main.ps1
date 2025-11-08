@@ -1,45 +1,67 @@
 param (
-    [string]$Prompt
+    [string]$Prompt = "Create Ubuntu VM in EastUS named NextOpsLVM07"
 )
 
-# === Variables ===
 $OpenAIEndpoint = $env:AZURE_OPENAI_ENDPOINT.TrimEnd('/')
 $OpenAIKey      = $env:AZURE_OPENAI_KEY
-$DeploymentName = "gpt4o-deploy"  # 👈 must match your actual deployment name
+$DeploymentName = "gpt4o-deploy"
 $ApiVersion     = "2024-02-15-preview"
 
 Write-Host "🧠 Generating Terraform for prompt: $Prompt"
 
-# === Prepare request ===
 $Body = @{
     messages = @(
-        @{ role = "system"; content = "You are a Terraform expert. Generate Azure VM code with RG, VNet, NSG, Public IP, and Ubuntu VM." }
-        @{ role = "user";   content = "Generate Terraform code for: $Prompt" }
+        @{
+            role    = "system"
+            content = @"
+You are an Azure Terraform expert.
+Generate ONLY valid Terraform HCL code.
+Start directly with terraform/provider blocks.
+Do not include markdown, explanations, or backticks.
+Ensure all braces match correctly.
+"@
+        },
+        @{
+            role    = "user"
+            content = "Generate Terraform to create: $Prompt. Include RG, VNet, Subnet, NSG, Public IP, NIC, and Ubuntu VM."
+        }
     )
     max_tokens = 1500
 } | ConvertTo-Json -Depth 5
 
 $Headers = @{
-    "api-key" = $OpenAIKey
+    "api-key"      = $OpenAIKey
     "Content-Type" = "application/json"
 }
 
-# === Call Azure OpenAI ===
 $Uri = "$OpenAIEndpoint/openai/deployments/$DeploymentName/chat/completions?api-version=$ApiVersion"
-
-Write-Host "📡 Calling deployment at: $Uri"
+Write-Host "📡 Calling model at: $Uri"
 
 try {
     $Response = Invoke-RestMethod -Uri $Uri -Method POST -Headers $Headers -Body $Body -ErrorAction Stop
     $TfCode = $Response.choices[0].message.content
-    Set-Content -Path "main.tf" -Value $TfCode
-    Write-Host "✅ Terraform file created."
-} 
+
+    $TfCode = $TfCode -replace '```hcl', ''
+    $TfCode = $TfCode -replace '```', ''
+    $TfCode = $TfCode.Trim()
+
+    Set-Content -Path "main.tf" -Value $TfCode -Encoding UTF8
+    Write-Host "✅ Terraform code generated successfully!"
+}
 catch {
-    Write-Host "❌ Failed to call Azure OpenAI deployment: $($_.Exception.Message)"
-    throw
+    Write-Host "❌ API call failed:"
+    Write-Host $_.Exception.Message
+    exit 1
 }
 
-# === Run Terraform ===
-terraform init
-terraform apply -auto-approve
+if ((Test-Path "main.tf") -and ((Get-Content "main.tf").Length -gt 0)) {
+    Write-Host "🔍 Validating Terraform..."
+    terraform fmt
+    terraform validate
+    terraform init
+    terraform apply -auto-approve
+}
+else {
+    Write-Host "⚠️ main.tf is empty — nothing to apply."
+}
+

@@ -3,7 +3,7 @@ name: AI Terraform Automation
 on:
   push:
     branches:
-      - test-api-gpt4o
+      - test-ai-gpt4o
     paths:
       - 'main.ps1'
       - '.github/workflows/ai-terraform.yml'

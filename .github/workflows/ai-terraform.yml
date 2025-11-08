@@ -3,16 +3,16 @@ name: AI Terraform Automation
 on:
   push:
     branches:
-    - test-api-gpt4o # Auto-trigger on push to this branch
+      - test-api-gpt4o
     paths:
-    - 'main.ps1' # Optional: only trigger when these files change
-    - '.github/workflows/ai-terraform.yml'
-    - 'main.tf'
+      - 'main.ps1'
+      - '.github/workflows/ai-terraform.yml'
+      - 'main.tf'
+
   workflow_dispatch:
-    # Still allow manual trigger
     inputs:
       prompt:
-        description: "Describe the VM setup (e.g., Create Ubuntu VM in EastUS named NextOpsLVM07)"
+        description: "Describe the VM setup"
         required: true
         default: "Create Ubuntu VM in EastUS named NextOpsLVM07"
 

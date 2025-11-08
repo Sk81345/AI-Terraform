@@ -1,4 +1,4 @@
-name: AI Terraform Automation
+name: AI Terraform Automationn
 
 on:
   push:

@@ -1,12 +1,11 @@
+param (
+    [string]$Prompt
+)
+
 # === Variables ===
 $OpenAIEndpoint = $env:AZURE_OPENAI_ENDPOINT
 $OpenAIKey      = $env:AZURE_OPENAI_KEY
 $Model          = "gpt-4o"
-
-# === Get Prompt from GitHub input ===
-param (
-    [string]$Prompt
-)
 
 Write-Host "🧠 Generating Terraform for prompt: $Prompt"
 
@@ -31,6 +30,5 @@ Set-Content -Path "main.tf" -Value $TfCode
 
 Write-Host "✅ Terraform file created."
 
-# === Terraform Execution ===
 terraform init
 terraform apply -auto-approve

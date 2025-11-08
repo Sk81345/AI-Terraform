@@ -1,15 +1,15 @@
-name: AI Terraform Automationn
+name: AI Terraform Automation
 
 on:
   push:
     branches:
-    - test-api-gpt4o # run automatically on pushes to main
+    - test-api-gpt4o # Auto-trigger on push to this branch
     paths:
-    - 'main.ps1' # optional: only trigger when this file changes
+    - 'main.ps1' # Optional: only trigger when these files change
     - '.github/workflows/ai-terraform.yml'
     - 'main.tf'
   workflow_dispatch:
-    # still allow manual runs
+    # Still allow manual trigger
     inputs:
       prompt:
         description: "Describe the VM setup (e.g., Create Ubuntu VM in EastUS named NextOpsLVM07)"
@@ -29,7 +29,7 @@ jobs:
     - name: Setup Terraform
       uses: hashicorp/setup-terraform@v3
 
-    # ⚡ Step 3 — Azure Login (needed for model deployment)
+    # ⚡ Step 3 — Azure Login
     - name: Azure Login
       uses: azure/login@v2
       with:
@@ -58,9 +58,7 @@ jobs:
           --sku-name "Standard"
         echo "✅ GPT-4o model deployment step completed."
 
-
-
-    # 🔧 Step 6 — Run PowerShell + AI + Terraform Automation
+    # 🧠 Step 5 — Run PowerShell + AI + Terraform Automation
     - name: Run PowerShell + AI + Terraform
       env:
         AZURE_OPENAI_ENDPOINT: ${{ secrets.AZURE_OPENAI_ENDPOINT }}
@@ -69,4 +67,4 @@ jobs:
         ARM_CLIENT_SECRET: ${{ secrets.ARM_CLIENT_SECRET }}
         ARM_TENANT_ID: ${{ secrets.ARM_TENANT_ID }}
         ARM_SUBSCRIPTION_ID: ${{ secrets.ARM_SUBSCRIPTION_ID }}
-      run: pwsh ./main.ps1 -Prompt "${{ github.event.inputs.prompt }}"
+      run: pwsh ./main.ps1 -Prompt "${{ github.event.inputs.prompt || 'Create Ubuntu VM in EastUS named NextOpsLVM07' }}"

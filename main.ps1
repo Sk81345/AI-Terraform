@@ -54,11 +54,14 @@ catch {
     exit 1
 }
 
-if (Test-Path "main.tf" -and (Get-Content "main.tf").Length -gt 0) {
+if ((Test-Path "main.tf") -and ((Get-Content "main.tf").Length -gt 0)) {
+    Write-Host "🔍 Validating Terraform..."
     terraform fmt
     terraform validate
     terraform init
     terraform apply -auto-approve
-} else {
+}
+else {
     Write-Host "⚠️ main.tf is empty — nothing to apply."
 }
+

@@ -49,10 +49,7 @@ jobs:
             --sku-name "Standard"
           echo "✅ GPT-4o model deployment step completed."
 
-      # 🧠 Step 5 — Setup PowerShell
- 
-      - name: Setup PowerShell
-        uses: actions/setup-powershell@v2
+
 
       # 🔧 Step 6 — Run PowerShell + AI + Terraform Automation
       - name: Run PowerShell + AI + Terraform
